@@ -5,7 +5,7 @@
 '''
 
 import cv2
-from PIL.Image import Image
+from PIL import Image
 
 def extract_video_info_and_frames(video_path):
     '''
