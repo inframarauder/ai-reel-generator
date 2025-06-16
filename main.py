@@ -3,7 +3,11 @@
     You know what its for :)
 '''
 
-from utils.video_utils import extract_video_info_and_frames, render_reel_video
+import json
+from tqdm import tqdm
+
+from sentence_transformers import SentenceTransformer
+from utils.video_utils import extract_video_info_and_frames
 from utils.vector_utils import compute_embeddings, get_clip_window
 from config import AppConfig
 
@@ -11,22 +15,29 @@ def main(app_config):
     '''
         main method - you know what it does :)
     '''
+    # load model - outside loop for efficiency
+    print(f"Loading model {app_config.model_name} ...")
+    model = SentenceTransformer(app_config.model_name)
 
     # compute embeddings for the prompt
+    print("Computing embeddings for the prompt...")
     prompt_emb = compute_embeddings(
         item = app_config.prompt,
-        model_name = app_config.model_name
+        model = model
     )
 
     # extract video info and frames
     video = extract_video_info_and_frames(
-        video_path = app_config.video_path
+        video_path = app_config.video_path,
+        sampling_rate = app_config.sampling_rate
     )
 
     # create a map of timestamps -> image embeddings for each video frame
-    timestamp_embedding_map = {t: compute_embeddings(item=img["pil_image"], model_name = app_config.model_name) for t, img in video["frames"].items()}
+    print("Computing embeddings for the sampled frames ...")
+    timestamp_embedding_map = {t: compute_embeddings(item=img["pil_image"], model=model) for t, img in tqdm(video["frames"].items())}
    
     # get start and end times for the clip to cut out of the video
+    print("Extracting clip with best match score ...")
     start, end = get_clip_window(
         prompt_emb = prompt_emb,
         ts_emb_map = timestamp_embedding_map,
@@ -34,27 +45,34 @@ def main(app_config):
     )
 
     # update the frames in the video to include only frames between start and end
-    video["frames"] = {t: img for t, img in video["frames"].items() if start <= t <= end}
+    # video["frames"] = {t: img for t, img in video["frames"].items() if start <= t <= end}
 
     # get reel video
-    reel_video_path = render_reel_video(
-        video = video,
-        output_path = app_config.reel_video_output_folder,
-        retain_audio = app_config.retain_audio_in_extracted_clip
-    )
+    # reel_video_path = render_reel_video(
+    #     video = video,
+    #     output_path = app_config.reel_video_output_folder,
+    #     retain_audio = app_config.retain_audio_in_extracted_clip
+    # )
 
-    print(f"Reel video rendered - {reel_video_path}")
+    # print(f"Reel video rendered - {reel_video_path}")
 
 # tests happen here for now
 if __name__ == "__main__":
 
-    main(
-        app_config = AppConfig(
-            video_path = ".videos/test.mp4",
-            prompt = "", # TODO: ChatGPT a prompt
-            clip_duration = 10, # lets start with small clips
-            reel_video_output_folder = ".output/",
-            retain_audio_in_extracted_clip = False, # we can toggle this later to play around
-            model_name = "clip-ViT-B-32" # we're gonna play a lot with this one!
-        ) 
-    )
+    with open("test_cases.json", "r", encoding="utf-8") as f:
+        test_cases = json.load(f)
+    print(f"Loaded {len(test_cases)} test case(s) from test_cases.json")
+
+    for test_case in test_cases :
+
+        main(
+            app_config = AppConfig(
+                video_path = test_case["video_path"],
+                prompt = test_case["prompt"],
+                clip_duration = test_case["clip_duration"],
+                reel_video_output_folder = test_case["reel_video_output_folder"],
+                retain_audio_in_extracted_clip = test_case["retain_audio_in_extracted_clip"],
+                model_name = test_case["model_name"],
+                sampling_rate = test_case["sampling_rate"]
+            )
+       )

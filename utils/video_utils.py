@@ -5,28 +5,32 @@
 '''
 
 import cv2
+from tqdm import trange
 from PIL import Image
 
-def extract_video_info_and_frames(video_path):
+def extract_video_info_and_frames(video_path, sampling_rate):
     '''
         This method displays video information and 
         returns a list of all frames in the video
     '''
 
     # capture video using OpenCV
-    cap = cv2.VideoCapture(video_path) 
+    cap = cv2.VideoCapture(video_path, apiPreference=0, params=[])
 
     # Get video properties
-    fps = cap.get(cv2.CAP_PROP_FPS) 
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))    
+    fps = round(cap.get(cv2.CAP_PROP_FPS))
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    total_duration = int(total_frames / fps) # in seconds    
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))   
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) 
 
-    print(f"Video Info:\nNumber of frames: {total_frames}\nFPS: {fps}\nResolution: {width} x {height}")
+    print(f"Video Info:\nNumber of frames: {total_frames}\nFPS: {fps}\nResolution: {width} x {height}\nVideo Length: {total_duration} seconds")
 
-    frame_count = 0
+    frames_to_sample = int(total_duration * sampling_rate)
     frames = dict()
-    while True:
+
+    print(f"Sampling {frames_to_sample} frames out of {total_frames} ({sampling_rate} frames per second) ...")
+    for iter in trange(frames_to_sample):
         # read frame
         success, frame = cap.read()
 
@@ -35,8 +39,8 @@ def extract_video_info_and_frames(video_path):
             print("Failed to read frame!")
             break
         
-        # get current frame's timestamp in seconds
-        timestamp_sec = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+        # get current timestamp in seconds
+        timestamp_sec = int(iter/sampling_rate)
 
         # convert current frame to a PIL image for ease of vector-embedding
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -47,8 +51,6 @@ def extract_video_info_and_frames(video_path):
             "pil_image" : pil_image,
             "opencv_frame" : frame
         }
-        frame_count += 1
-        print(f"Processed {frame_count}/{total_frames} frames..")
     
     return {
        "fps" : fps,

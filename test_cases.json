@@ -1,0 +1,11 @@
+[
+    {
+        "video_path" : ".work-dir/input/DJI_0001.MP4",
+        "prompt" : "Motorcycle rider’s point of view through a vast, barren mountain landscape. The road ahead is winding with dramatic curves and twists, creating a sense of adventure. The motorcycle’s handlebar and console are clearly visible in the foreground, enhancing the immersive riding experience",
+        "clip_duration" : 30,
+        "reel_video_output_folder" : ".work-dir/output/",
+        "retain_audio_in_extracted_clip": "False",
+        "model_name": "clip-ViT-B-32",
+        "sampling_rate": 1
+    }
+]
