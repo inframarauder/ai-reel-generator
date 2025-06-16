@@ -4,7 +4,7 @@
 '''
 
 from utils.video_utils import extract_video_info_and_frames, render_reel_video
-from utils.vector_utils import compute_prompt_embedding,compute_image_embedding, get_clip_window
+from utils.vector_utils import compute_embeddings, get_clip_window
 from config import AppConfig
 
 def main(app_config):
@@ -13,8 +13,9 @@ def main(app_config):
     '''
 
     # compute embeddings for the prompt
-    prompt_emb = compute_prompt_embedding(
-        prompt = app_config.prompt
+    prompt_emb = compute_embeddings(
+        item = app_config.prompt,
+        model_name = app_config.model_name
     )
 
     # extract video info and frames
@@ -23,7 +24,7 @@ def main(app_config):
     )
 
     # create a map of timestamps -> image embeddings for each video frame
-    timestamp_embedding_map = {t: compute_image_embedding(image=img["pil_image"]) for t, img in video["frames"].items()}
+    timestamp_embedding_map = {t: compute_embeddings(item=img["pil_image"], model_name = app_config.model_name) for t, img in video["frames"].items()}
    
     # get start and end times for the clip to cut out of the video
     start, end = get_clip_window(
@@ -53,6 +54,7 @@ if __name__ == "__main__":
             prompt = "", # TODO: ChatGPT a prompt
             clip_duration = 10, # lets start with small clips
             reel_video_output_folder = ".output/",
-            retain_audio_in_extracted_clip = False # we can toggle this later to play around
+            retain_audio_in_extracted_clip = False, # we can toggle this later to play around
+            model_name = "clip-ViT-B-32" # we're gonna play a lot with this one!
         ) 
     )

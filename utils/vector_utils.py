@@ -2,25 +2,15 @@
     utility methods for all vector/AI operations like 
     computing embeddings and cosine similarity
 '''
+from sentence_transformers import SentenceTransformer, util
 
-# TODO: import all AI dependencies like torch, numpy, sentence-transformer, etc..
-
-
-def compute_prompt_embedding(prompt):
+def compute_embeddings(item,model_name):
     '''
-        method to take a text prompt as an input and
-        return the embeddings computed for it
+        Returns embeddings using from a 
+        given model_name
     '''
-    # TODO: implement method
-    return []
-
-def compute_image_embedding(image):
-    '''
-        method to take an image as an input and
-        return the embeddings computed for it
-    '''
-    # TODO: implement method
-    return []
+    model = SentenceTransformer(model_name) 
+    return model.encode(item)
 
 
 def get_clip_window(prompt_emb, ts_emb_map, k):
@@ -41,7 +31,7 @@ def get_clip_window(prompt_emb, ts_emb_map, k):
     while i <= (n-k):
         timestamp_window = timestamps[i:i+k]
         image_emb_window = image_embs[i:i+k]
-        image_similarity_window = [cosine_similarity(prompt_emb, image_emb) for image_emb in image_emb_window]
+        image_similarity_window = [util.cos_sim(prompt_emb, image_emb) for image_emb in image_emb_window]
 
         curr_sum = sum(image_similarity_window)
         curr_avg = curr_sum / k

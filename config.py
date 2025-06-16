@@ -14,3 +14,4 @@ class AppConfig:
     clip_duration: int
     reel_video_output_folder: str
     retain_audio_in_extracted_clip: bool
+    model_name: str
