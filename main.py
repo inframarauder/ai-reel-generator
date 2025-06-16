@@ -1,23 +1,27 @@
 '''
-    This is the main.py file.
-    You know what its for :)
+This is the main.py file.
+You know what its for :)
 '''
 
 import json
+import time
 from tqdm import tqdm
 
 from sentence_transformers import SentenceTransformer
-from utils.video_utils import extract_video_info_and_frames
+from utils.video_utils import extract_video_info_and_frames,render_reel_video
 from utils.vector_utils import compute_embeddings, get_clip_window
 from config import AppConfig
+
+# load model - outside loop for efficiency
+MODEL_NAME = "clip-ViT-B-32"
+print(f"Loading model {MODEL_NAME} ...")
+model = SentenceTransformer(MODEL_NAME)
 
 def main(app_config):
     '''
         main method - you know what it does :)
     '''
-    # load model - outside loop for efficiency
-    print(f"Loading model {app_config.model_name} ...")
-    model = SentenceTransformer(app_config.model_name)
+    print(f"\nProcessing video: {app_config.video_path}")
 
     # compute embeddings for the prompt
     print("Computing embeddings for the prompt...")
@@ -44,17 +48,17 @@ def main(app_config):
         k = app_config.clip_duration
     )
 
-    # update the frames in the video to include only frames between start and end
-    # video["frames"] = {t: img for t, img in video["frames"].items() if start <= t <= end}
-
     # get reel video
-    # reel_video_path = render_reel_video(
-    #     video = video,
-    #     output_path = app_config.reel_video_output_folder,
-    #     retain_audio = app_config.retain_audio_in_extracted_clip
-    # )
+    output_path = f"{app_config.reel_video_output_folder}/reel_{time.time()}.mp4"
+    render_reel_video(
+        video_path=app_config.video_path,
+        output_path=output_path,
+        start=start,
+        end=end,
+        retain_audio=app_config.retain_audio_in_extracted_clip
+    )
 
-    # print(f"Reel video rendered - {reel_video_path}")
+    print(f"Reel video rendered!")
 
 # tests happen here for now
 if __name__ == "__main__":
@@ -72,7 +76,6 @@ if __name__ == "__main__":
                 clip_duration = test_case["clip_duration"],
                 reel_video_output_folder = test_case["reel_video_output_folder"],
                 retain_audio_in_extracted_clip = test_case["retain_audio_in_extracted_clip"],
-                model_name = test_case["model_name"],
                 sampling_rate = test_case["sampling_rate"]
             )
        )

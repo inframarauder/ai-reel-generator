@@ -3,8 +3,8 @@
     utility functions related to video processing
     pylint is disabled due to weird false warnings while using cv2
 '''
-
 import cv2
+import ffmpeg
 from tqdm import trange
 from PIL import Image
 
@@ -60,6 +60,24 @@ def extract_video_info_and_frames(video_path, sampling_rate):
        "frames":frames
     }
 
-def render_reel_video(video,output_path,retain_audio):
-    # TODO: implement frame stitching to render final video
-    return ""
+def render_reel_video(video_path,output_path,start,end,retain_audio):
+    """
+    Cut video using ffmpeg-python.
+    """
+    try:
+       return (
+            ffmpeg
+            .input(video_path, ss=start, to=end)
+            .output(output_path, vcodec="copy", an=None)
+            .overwrite_output()
+            .run()
+        ) if retain_audio else (
+            ffmpeg
+            .input(video_path, ss=start, to=end)
+            .output(output_path, vcodec="copy")
+            .overwrite_output()
+            .run()
+        )
+    except ffmpeg.Error as e:
+        print(f"Error cutting video: {e.stderr.decode('utf8')}")
+        raise

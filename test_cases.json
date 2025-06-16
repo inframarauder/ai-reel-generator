@@ -1,11 +1,42 @@
 [
     {
-        "video_path" : ".work-dir/input/DJI_0001.MP4",
-        "prompt" : "Motorcycle rider’s point of view through a vast, barren mountain landscape. The road ahead is winding with dramatic curves and twists, creating a sense of adventure. The motorcycle’s handlebar and console are clearly visible in the foreground, enhancing the immersive riding experience",
-        "clip_duration" : 30,
+        "video_path" : ".work-dir/input/car1.MP4",
+        "prompt" : "Passenger’s point of view from a car driving through the winding, twisting roads of Phuket, Thailand. The scene is lush with dense tropical greenery, featuring vibrant foliage and native trees on both sides of the road, capturing the essence of a tropical paradise.",
+        "clip_duration" : 10,
         "reel_video_output_folder" : ".work-dir/output/",
         "retain_audio_in_extracted_clip": "False",
-        "model_name": "clip-ViT-B-32",
+        "sampling_rate": 1
+    },
+    {
+        "video_path" : ".work-dir/input/outro1.MP4",
+        "prompt" : "A man speaking directly into the camera while giving a casual tour of his hotel room. He points out various features as he moves around, offering a personal, vlog-style glimpse into the space, with a relaxed and conversational tone.",
+        "clip_duration" : 10,
+        "reel_video_output_folder" : ".work-dir/output/",
+        "retain_audio_in_extracted_clip": "False",
+        "sampling_rate": 1
+    },
+    {
+        "video_path" : ".work-dir/input/GX014092.MP4",
+        "prompt" : "Motorcycle rider’s point of view through a vast, barren mountain landscape. The road ahead is winding with dramatic curves and twists, creating a sense of adventure. The motorcycle’s handlebar and console are clearly visible in the foreground, enhancing the immersive riding experience.",
+        "clip_duration" : 10,
+        "reel_video_output_folder" : ".work-dir/output/",
+        "retain_audio_in_extracted_clip": "False",
+        "sampling_rate": 1
+    },
+    {
+        "video_path" : ".work-dir/input/GX014078.MP4",
+        "prompt" : "Motorcycle rider’s point of view through a vast, barren mountain landscape. The road ahead is winding with dramatic curves and twists, creating a sense of adventure. The motorcycle’s handlebar and console are clearly visible in the foreground, enhancing the immersive riding experience.",
+        "clip_duration" : 10,
+        "reel_video_output_folder" : ".work-dir/output/",
+        "retain_audio_in_extracted_clip": "False",
+        "sampling_rate": 1
+    },
+    {
+        "video_path" : ".work-dir/input/DJI_0002.MP4",
+        "prompt" : "Motorcycle rider’s point of view through a vast, barren mountain landscape. The road ahead is winding with dramatic curves and twists, creating a sense of adventure. The motorcycle’s handlebar and console are clearly visible in the foreground, enhancing the immersive riding experience.",
+        "clip_duration" : 10,
+        "reel_video_output_folder" : ".work-dir/output/",
+        "retain_audio_in_extracted_clip": "False",
         "sampling_rate": 1
     }
 ]
