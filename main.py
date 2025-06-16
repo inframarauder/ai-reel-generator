@@ -1,8 +1,47 @@
-import os
+# pylint: disable=all
+
+import cv2
+
+def extract_video_frames(video_path):
+    '''
+        This method displays video information and 
+        returns a list of all frames in the video
+    '''
+
+    # capture video using OpenCV
+    cap = cv2.VideoCapture(video_path) 
+
+    # Get video properties
+    fps = cap.get(cv2.CAP_PROP_FPS) 
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))    
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))   
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) 
+
+    print(f"Video Info:\nNumber of frames: {total_frames}\nFPS: {fps}\nResolution: {width} x {height}")
+
+    frame_count = 0
+    frames = []
+    while True:
+        # read frame
+        success, frame = cap.read()
+
+        # break loop if unable to read frame
+        if not success:
+            print("Failed to read frame!")
+            break
+        
+        # add frame to list of frames and increase frame_count
+        frames.append(frame)
+        frame_count += 1
+        print(f"Processed {frame_count}/{total_frames} frames..")
+    
+    return frames
+
+
 
 def get_clip_window(prompt_emb, video_path, k):
-    frames = get_frames(video_path)
-    timestamp_embedding_map = create_timestamp_embedding_map(frames)
+    video_frames = extract_video_frames(video_path)
+    timestamp_embedding_map = create_timestamp_embedding_map(video_frames)
 
     timestamps = timestamp_embedding_map.keys()
     image_embs = timestamp_embedding_map.values()
