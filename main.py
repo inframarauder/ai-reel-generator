@@ -1,70 +1,58 @@
-# pylint: disable=all
+'''
+    This is the main.py file.
+    You know what its for :)
+'''
 
-import cv2
+from utils.video_utils import extract_video_info_and_frames, render_reel_video
+from utils.vector_utils import compute_prompt_embedding,compute_image_embedding, get_clip_window
+from config import AppConfig
 
-def extract_video_frames(video_path):
+def main(app_config):
     '''
-        This method displays video information and 
-        returns a list of all frames in the video
+        main method - you know what it does :)
     '''
 
-    # capture video using OpenCV
-    cap = cv2.VideoCapture(video_path) 
+    # compute embeddings for the prompt
+    prompt_emb = compute_prompt_embedding(
+        prompt = app_config.prompt
+    )
 
-    # Get video properties
-    fps = cap.get(cv2.CAP_PROP_FPS) 
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))    
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))   
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) 
+    # extract video info and frames
+    video = extract_video_info_and_frames(
+        video_path = app_config.video_path
+    )
 
-    print(f"Video Info:\nNumber of frames: {total_frames}\nFPS: {fps}\nResolution: {width} x {height}")
+    # create a map of timestamps -> image embeddings for each video frame
+    timestamp_embedding_map = {t: compute_image_embedding(image=img["pil_image"]) for t, img in video["frames"].items()}
+   
+    # get start and end times for the clip to cut out of the video
+    start, end = get_clip_window(
+        prompt_emb = prompt_emb,
+        ts_emb_map = timestamp_embedding_map,
+        k = app_config.clip_duration
+    )
 
-    frame_count = 0
-    frames = []
-    while True:
-        # read frame
-        success, frame = cap.read()
+    # update the frames in the video to include only frames between start and end
+    video["frames"] = {t: img for t, img in video["frames"].items() if start <= t <= end}
 
-        # break loop if unable to read frame
-        if not success:
-            print("Failed to read frame!")
-            break
-        
-        # add frame to list of frames and increase frame_count
-        frames.append(frame)
-        frame_count += 1
-        print(f"Processed {frame_count}/{total_frames} frames..")
-    
-    return frames
+    # get reel video
+    reel_video_path = render_reel_video(
+        video = video,
+        output_path = app_config.reel_video_output_folder,
+        retain_audio = app_config.retain_audio_in_extracted_clip
+    )
 
+    print(f"Reel video rendered - {reel_video_path}")
 
+# tests happen here for now
+if __name__ == "__main__":
 
-def get_clip_window(prompt_emb, video_path, k):
-    video_frames = extract_video_frames(video_path)
-    timestamp_embedding_map = create_timestamp_embedding_map(video_frames)
-
-    timestamps = timestamp_embedding_map.keys()
-    image_embs = timestamp_embedding_map.values()
-
-    clip_window = (0,0)
-    n = len(timestamp_embedding_map.items())
-    i = 0
-    avg_similarity = 0
-
-    while i <= (n-k):
-        timestamp_window = timestamps[i:i+k]
-        image_emb_window = image_embs[i:i+k]
-        image_similarity_window = [cosine_similarity(prompt_emb, image_emb) for image_emb in image_emb_window]
-
-        curr_sum = sum(image_similarity_window)
-        curr_avg = curr_sum / k
-
-        if curr_avg > avg_similarity:
-            avg_similarity = curr_avg
-            i = k
-            clip_window = (timestamp_window[0], timestamp_window[len(timestamp_window) - 1])
-            
-        else:
-            i = i + 1
-
-        return clip_window
+    main(
+        app_config = AppConfig(
+            video_path = ".videos/test.mp4",
+            prompt = "", # TODO: ChatGPT a prompt
+            clip_duration = 10, # lets start with small clips
+            reel_video_output_folder = ".output/",
+            retain_audio_in_extracted_clip = False # we can toggle this later to play around
+        ) 
+    )
