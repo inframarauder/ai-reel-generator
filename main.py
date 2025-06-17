@@ -2,8 +2,8 @@
 This is the main.py file.
 You know what its for :)
 '''
-
 import json
+import os
 import time
 from tqdm import tqdm
 
@@ -17,16 +17,35 @@ MODEL_NAME = "clip-ViT-B-32"
 print(f"Loading model {MODEL_NAME} ...")
 model = SentenceTransformer(MODEL_NAME)
 
+def pre_flight_checks(app_config):
+    '''
+    Does pre-flight checks on the inputs
+    before running the main code
+    '''
+    # pre-flight checks
+    input_path = app_config.video_input_path
+    output_path = app_config.video_output_path
+
+    if not os.access(input_path, os.R_OK):
+        print(f"Cannot access video input folder: {input_path}")
+        exit(1)
+    
+    if not os.access(output_path, os.R_OK) and os.access(output_path, os.W_OK):
+        print(f"Lacking read or write access to output folder: {output_path}")
+        exit(1)
+    return
+
 def main(app_config):
     '''
     main method - you know what it does :)
     '''
-    print(f"\nProcessing video: {app_config.video_path}")
+    # perform pre-flight checks
+    pre_flight_checks(app_config=app_config)
 
     # compute embeddings for the prompt
-    print("Computing embeddings for the prompt...")
+    print("Computing embeddings for the scene prompt...")
     prompt_emb = compute_embeddings(
-        item = app_config.prompt,
+        item = app_config.scene_prompt,
         model = model
     )
 
@@ -67,15 +86,15 @@ if __name__ == "__main__":
         test_cases = json.load(f)
     print(f"Loaded {len(test_cases)} test case(s) from test_cases.json")
 
-    for test_case in test_cases :
+    # for test_case in test_cases :
 
-        main(
-            app_config = AppConfig(
-                video_path = test_case["video_path"],
-                prompt = test_case["prompt"],
-                clip_duration = test_case["clip_duration"],
-                reel_video_output_folder = test_case["reel_video_output_folder"],
-                retain_audio_in_extracted_clip = test_case["retain_audio_in_extracted_clip"],
-                sampling_rate = test_case["sampling_rate"]
-            )
-       )
+    #     main(
+    #         app_config = AppConfig(
+    #             video_path = test_case["video_path"],
+    #             prompt = test_case["prompt"],
+    #             clip_duration = test_case["clip_duration"],
+    #             reel_video_output_folder = test_case["reel_video_output_folder"],
+    #             retain_audio_in_extracted_clip = test_case["retain_audio_in_extracted_clip"],
+    #             sampling_rate = test_case["sampling_rate"]
+    #         )
+    #    )

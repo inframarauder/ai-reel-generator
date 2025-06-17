@@ -9,9 +9,10 @@ class AppConfig:
     '''
     All the attributes that can be configured for the app
     '''
-    video_path: str
-    prompt: str
+    video_input_folder: str
+    scene_prompt: str
     clip_duration: int
-    reel_video_output_folder: str
+    video_output_folder: str
     retain_audio_in_extracted_clip: bool
-    sampling_rate: int
+    frame_sampling_rate: int
+    tags: list[str]
