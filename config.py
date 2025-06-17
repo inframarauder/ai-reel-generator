@@ -15,4 +15,5 @@ class AppConfig:
     video_output_folder: str
     retain_audio_in_extracted_clip: bool
     frame_sampling_rate: int
+    match_score_threshold: float
     tags: list[str]

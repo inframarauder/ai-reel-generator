@@ -194,4 +194,4 @@ cython_debug/
 .cursorindexingignore
 
 # ignore all working dir stuff
-.work-dir/
+work-dir/

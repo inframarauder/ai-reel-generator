@@ -12,7 +12,7 @@ def compute_embeddings(item,model):
     return model.encode(item)
 
 
-def get_clip_window(prompt_emb, ts_emb_map, k):
+def get_clip_window(prompt_emb, ts_emb_map, k, threshold):
     '''
     method to get a clip window (start,end) of size k
     where the frames have the highest similarity to the prompt
@@ -33,8 +33,13 @@ def get_clip_window(prompt_emb, ts_emb_map, k):
         image_similarity_window = [util.cos_sim(prompt_emb, image_emb).flatten()[0] for image_emb in image_emb_window]
 
         curr_sum = sum(image_similarity_window)
-        curr_avg = curr_sum / k
+        curr_avg = round(float(curr_sum / k), 5)
 
+        # skip values in case of avg less than threshold
+        if curr_avg < threshold:
+            continue
+        
+        # find max avg
         if curr_avg > max_avg_similarity:
             max_avg_similarity = curr_avg
             i = k

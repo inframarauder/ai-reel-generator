@@ -13,6 +13,7 @@ def extract_video_info_and_frames(video_path, sampling_rate):
     This method displays video information and 
     returns a list of all frames in the video
     '''
+    print(f"Processing video {video_path}")
 
     # capture video using OpenCV
     cap = cv2.VideoCapture(video_path, apiPreference=0, params=[])
@@ -67,16 +68,16 @@ def render_reel_video(video_path,output_path,start,end,retain_audio):
     try:
        return (
             ffmpeg
-            .input(video_path, ss=start, to=end)
+            .input(video_path, ss=start, to=end, )
             .output(output_path, vcodec="copy", an=None)
             .overwrite_output()
-            .run()
+            .run(quiet = True)
         ) if retain_audio else (
             ffmpeg
             .input(video_path, ss=start, to=end)
             .output(output_path, vcodec="copy")
             .overwrite_output()
-            .run()
+            .run(quiet = True)
         )
     except ffmpeg.Error as e:
         print(f"Error cutting video: {e.stderr.decode('utf8')}")
