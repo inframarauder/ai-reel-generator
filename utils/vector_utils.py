@@ -1,23 +1,23 @@
 '''
-    utility methods for all vector/AI operations like 
-    computing embeddings and cosine similarity
+utility methods for all vector/AI operations like 
+computing embeddings and cosine similarity
 '''
 from sentence_transformers import util
 
 def compute_embeddings(item,model):
     '''
-        Returns embeddings using from a 
-        given model_name
+    Returns embeddings using from a 
+    given model_name
     '''
     return model.encode(item)
 
 
 def get_clip_window(prompt_emb, ts_emb_map, k):
     '''
-        method to get a clip window (start,end) of size k
-        where the frames have the highest similarity to the prompt
+    method to get a clip window (start,end) of size k
+    where the frames have the highest similarity to the prompt
 
-        uses the sliding-window algorithm
+    uses the sliding-window algorithm
     '''
     timestamps = list(ts_emb_map.keys())
     image_embs = list(ts_emb_map.values())

@@ -19,7 +19,7 @@ model = SentenceTransformer(MODEL_NAME)
 
 def main(app_config):
     '''
-        main method - you know what it does :)
+    main method - you know what it does :)
     '''
     print(f"\nProcessing video: {app_config.video_path}")
 
@@ -58,7 +58,7 @@ def main(app_config):
         retain_audio=app_config.retain_audio_in_extracted_clip
     )
 
-    print(f"Reel video rendered!")
+    print("Reel clip rendered!")
 
 # tests happen here for now
 if __name__ == "__main__":

@@ -1,13 +1,13 @@
 
 '''
-    App-wide configurations go here
+App-wide configurations go here
 '''
 from dataclasses import dataclass
 
 @dataclass
 class AppConfig:
     '''
-        All the attributes that can be configured for the app
+    All the attributes that can be configured for the app
     '''
     video_path: str
     prompt: str

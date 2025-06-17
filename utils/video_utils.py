@@ -1,7 +1,7 @@
 # pylint: disable=all 
 '''
-    utility functions related to video processing
-    pylint is disabled due to weird false warnings while using cv2
+utility functions related to video processing
+pylint is disabled due to weird false warnings while using cv2
 '''
 import cv2
 import ffmpeg
@@ -10,8 +10,8 @@ from PIL import Image
 
 def extract_video_info_and_frames(video_path, sampling_rate):
     '''
-        This method displays video information and 
-        returns a list of all frames in the video
+    This method displays video information and 
+    returns a list of all frames in the video
     '''
 
     # capture video using OpenCV
