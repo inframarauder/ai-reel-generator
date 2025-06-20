@@ -12,7 +12,7 @@ def compute_embeddings(item,model):
     return model.encode(item)
 
 
-def get_clip_window(prompt_emb, ts_emb_map, k, threshold):
+def get_clip_window_match_score(prompt_emb, ts_emb_map, k, threshold):
     '''
     method to get a clip window (start,end) of size k
     where the frames have the highest similarity to the prompt
@@ -37,7 +37,7 @@ def get_clip_window(prompt_emb, ts_emb_map, k, threshold):
 
         # skip values in case of avg less than threshold
         if curr_avg < threshold:
-            continue
+            i = i + 1
         
         # find max avg
         if curr_avg > max_avg_similarity:
@@ -48,5 +48,5 @@ def get_clip_window(prompt_emb, ts_emb_map, k, threshold):
         else:
             i = i + 1
 
-    print(f"Max match score: {max_avg_similarity}\nClip Cut Points (sec): {clip_window}")
-    return clip_window
+    return (clip_window, max_avg_similarity)
+

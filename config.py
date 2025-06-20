@@ -12,6 +12,7 @@ class AppConfig:
     video_input_folder: str
     scene_prompt: str
     clip_duration: int
+    num_clips: int
     video_output_folder: str
     retain_audio_in_extracted_clip: bool
     frame_sampling_rate: int

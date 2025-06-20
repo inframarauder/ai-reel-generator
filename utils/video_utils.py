@@ -56,6 +56,7 @@ def extract_video_info_and_frames(video_path, sampling_rate):
     return {
        "fps" : fps,
        "total_frames": total_frames,
+       "total_duration": total_duration,
        "width" : width,
        "height": height,
        "frames":frames

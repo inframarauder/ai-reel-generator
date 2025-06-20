@@ -1,12 +1,17 @@
 [
     {
-        "video_input_folder" : "/Users/subhasis/vlog-footage/[5] - Nubra to Pangong Lake/GoPro/",
-        "scene_prompt" : "Motorcycle rider’s point of view through a vast, barren mountain landscape. The road ahead is winding with dramatic curves and twists, creating a sense of adventure. The motorcycle’s handlebar and console are clearly visible in the foreground, enhancing the immersive riding experience.",
-        "clip_duration" : 10,
-        "video_output_folder" : "/Users/subhasis/vlog-footage/reels/",
+        "video_input_folder": "/Users/subhasis/vlog-footage/[5] - Nubra to Pangong Lake/DJI/",
+        "scene_prompt": "Motorcycle rider’s point of view through a vast, barren mountain landscape. The road ahead is winding with dramatic curves and twists, creating a sense of adventure. The motorcycle’s handlebar and console are clearly visible in the foreground, enhancing the immersive riding experience.",
+        "clip_duration": 10,
+        "num_clips": 3,
+        "video_output_folder": "/Users/subhasis/vlog-footage/reels/",
         "retain_audio_in_extracted_clip": "False",
         "frame_sampling_rate": 1,
-        "tags": ["ladakh","motorcycle","adventure"],
+        "tags": [
+            "ladakh",
+            "motorcycle",
+            "adventure"
+        ],
         "match_score_threshold": 0.25
     }
 ]
