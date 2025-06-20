@@ -25,7 +25,7 @@ def get_clip_window_match_score(prompt_emb, ts_emb_map, k, threshold):
     clip_window = (0,0)
     n = len(ts_emb_map.items())
     i = 0
-    max_avg_similarity = 0
+    max_avg_similarity = threshold
 
     while i <= (n-k):
         timestamp_window = timestamps[i:i+k]
@@ -34,10 +34,6 @@ def get_clip_window_match_score(prompt_emb, ts_emb_map, k, threshold):
 
         curr_sum = sum(image_similarity_window)
         curr_avg = round(float(curr_sum / k), 5)
-
-        # skip values in case of avg less than threshold
-        if curr_avg < threshold:
-            i = i + 1
         
         # find max avg
         if curr_avg > max_avg_similarity:

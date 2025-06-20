@@ -68,8 +68,11 @@ def main(app_config):
                     k = app_config.clip_duration,
                     threshold = app_config.match_score_threshold
                 )
+                
+                # only clips with match_score over the threshold
+                if match_score > app_config.match_score_threshold:
+                    heapq.heappush(shortlisted_clips, (match_score, clip_window,video_path))
 
-                heapq.heappush(shortlisted_clips, (match_score, clip_window,video_path))
         pprint(heapq.nlargest(app_config.num_clips,shortlisted_clips))
 
         render_reel(
