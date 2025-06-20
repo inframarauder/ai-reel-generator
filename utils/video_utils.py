@@ -3,10 +3,12 @@
 utility functions related to video processing
 pylint is disabled due to weird false warnings while using cv2
 '''
+import time 
+
 import cv2
-import ffmpeg
 from tqdm import trange
 from PIL import Image
+from moviepy import VideoFileClip,CompositeVideoClip, concatenate_videoclips, vfx
 
 def extract_video_info_and_frames(video_path, sampling_rate):
     '''
@@ -62,24 +64,46 @@ def extract_video_info_and_frames(video_path, sampling_rate):
        "frames":frames
     }
 
-def render_reel_video(video_path,output_path,start,end,retain_audio):
-    """
-    Cut video using ffmpeg-python.
-    """
-    try:
-       return (
-            ffmpeg
-            .input(video_path, ss=start, to=end, )
-            .output(output_path, vcodec="copy", an=None)
-            .overwrite_output()
-            .run(quiet = True)
-        ) if retain_audio else (
-            ffmpeg
-            .input(video_path, ss=start, to=end)
-            .output(output_path, vcodec="copy")
-            .overwrite_output()
-            .run(quiet = True)
-        )
-    except ffmpeg.Error as e:
-        print(f"Error cutting video: {e.stderr.decode('utf8')}")
-        raise
+def render_reel(video_segments, output_folder, retain_audio):
+    '''
+        merge clips, apply transitions,sync to audio,
+        do whatever the heck needs to be done and 
+        render final reel clip at output_path
+    '''
+
+    TRANSITION_DURATION = 1
+
+    # extract the required clips
+    clips = []
+    for _,clip_window,video_path in video_segments:
+
+        video = VideoFileClip(video_path, audio=retain_audio) 
+        start , end = clip_window
+
+        # Cut and collect the segments with transition
+        clip = video.subclipped(start,end)
+        clips.append(clip)
+    
+    # stitch them with transition into a single video
+    final_video = concatenate_videoclips(
+        clips = clips, 
+        method="compose",
+        padding = 0
+    )
+
+    # render final video
+    output_path = f"{output_folder}/reel_{time.time()}.mp4"
+    final_video.write_videofile(
+        output_path,
+        codec="libx264",
+        audio_codec="aac",  # Required parameter even with no audio
+        fps=30,
+        threads=4
+    )
+
+     # Close all clips to free resources
+    for clip in clips:
+        clip.close()
+    final_video.close()
+
+    print(f"Reel rendered at path: {output_path}")

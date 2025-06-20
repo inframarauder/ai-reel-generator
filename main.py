@@ -6,12 +6,16 @@ import json
 import heapq
 from pprint import pprint
 from tqdm import tqdm
+import dotenv
 
 from sentence_transformers import SentenceTransformer
-from utils.video_utils import extract_video_info_and_frames
+from utils.video_utils import extract_video_info_and_frames,render_reel
 from utils.vector_utils import compute_embeddings, get_clip_window_match_score
 from utils.file_utils import pre_flight_checks,get_input_videos_list
 from config import AppConfig
+
+# load env variables
+dotenv.load_dotenv()
 
 # load model - outside all loops for efficiency
 MODEL_NAME = "clip-ViT-B-32"
@@ -67,6 +71,13 @@ def main(app_config):
 
                 heapq.heappush(shortlisted_clips, (match_score, clip_window,video_path))
         pprint(heapq.nlargest(app_config.num_clips,shortlisted_clips))
+
+        render_reel(
+            video_segments = shortlisted_clips,
+            output_folder = app_config.video_output_folder,
+            retain_audio = app_config.retain_audio_in_extracted_clip
+        )
+        
 
 # tests happen here for now
 if __name__ == "__main__":
