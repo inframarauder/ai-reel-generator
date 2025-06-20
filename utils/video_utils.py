@@ -70,19 +70,22 @@ def render_reel(video_segments, output_folder, retain_audio):
         do whatever the heck needs to be done and 
         render final reel clip at output_path
     '''
-
-    TRANSITION_DURATION = 1
-
     # extract the required clips
     clips = []
-    for _,clip_window,video_path in video_segments:
+    print("Processing top match clips ...")
+    for match_score,clip_window,video_path in video_segments:
 
         video = VideoFileClip(video_path, audio=retain_audio) 
         start , end = clip_window
 
+        print(f"{video_path} - {clip_window} ({match_score})")
+
         # Cut and collect the segments with transition
         clip = video.subclipped(start,end)
         clips.append(clip)
+
+        # close clip to free up resources
+        clip.close()
     
     # stitch them with transition into a single video
     final_video = concatenate_videoclips(
@@ -101,9 +104,7 @@ def render_reel(video_segments, output_folder, retain_audio):
         threads=4
     )
 
-     # Close all clips to free resources
-    for clip in clips:
-        clip.close()
+     # Close final_video
     final_video.close()
 
     print(f"Reel rendered at path: {output_path}")

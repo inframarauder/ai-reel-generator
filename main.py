@@ -73,10 +73,10 @@ def main(app_config):
                 if match_score > app_config.match_score_threshold:
                     heapq.heappush(shortlisted_clips, (match_score, clip_window,video_path))
 
-        pprint(heapq.nlargest(app_config.num_clips,shortlisted_clips))
+        top_match_clips = heapq.nlargest(app_config.num_clips,shortlisted_clips)
 
         render_reel(
-            video_segments = shortlisted_clips,
+            video_segments = top_match_clips,
             output_folder = app_config.video_output_folder,
             retain_audio = app_config.retain_audio_in_extracted_clip
         )

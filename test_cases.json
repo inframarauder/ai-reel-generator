@@ -1,10 +1,10 @@
 [
     {
-        "video_input_folder": "/Users/subhasis/deepcut-tests/",
+        "video_input_folder": "/Users/subhasis/vlog-footage/nubra-to-pangong-lake",
         "scene_prompt": "Motorcycle rider’s point of view through a vast, barren mountain landscape. The road ahead is winding with dramatic curves and twists, creating a sense of adventure. The motorcycle’s handlebar and console are clearly visible in the foreground, enhancing the immersive riding experience.",
         "clip_duration": 10,
-        "num_clips": 3,
-        "video_output_folder": "/Users/subhasis/vlog-footage/reels/",
+        "num_clips": 5,
+        "video_output_folder": "/Users/subhasis/vlog-footage/reels",
         "retain_audio_in_extracted_clip": "False",
         "frame_sampling_rate": 1,
         "tags": [
