@@ -78,7 +78,7 @@ def render_reel(video_segments, output_folder, retain_audio):
         video = VideoFileClip(video_path, audio=retain_audio) 
         start , end = clip_window
 
-        print(f"{video_path} - {clip_window} ({match_score})")
+        print(f"{video_path} - {clip_window} [{round(match_score*100)}% match]")
 
         # Cut and collect the segments with transition
         clip = video.subclipped(start,end)

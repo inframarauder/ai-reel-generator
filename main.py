@@ -4,7 +4,6 @@ You know what its for :)
 '''
 import json
 import heapq
-from pprint import pprint
 from tqdm import tqdm
 import dotenv
 
@@ -18,7 +17,7 @@ from config import AppConfig
 dotenv.load_dotenv()
 
 # load model - outside all loops for efficiency
-MODEL_NAME = "clip-ViT-B-32"
+MODEL_NAME = "clip-ViT-L-14"
 print(f"Loading model {MODEL_NAME} ...")
 model = SentenceTransformer(MODEL_NAME)
 
