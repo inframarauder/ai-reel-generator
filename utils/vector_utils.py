@@ -4,6 +4,12 @@ computing embeddings and cosine similarity
 '''
 from sentence_transformers import util
 
+def cosine_similarity(vector1,vector2):
+    '''
+    returns cosine similarity between two 1-D vectors
+    '''
+    return util.cos_sim(vector1, vector2).flatten()[0]
+
 def compute_embeddings(item,model):
     '''
     Returns embeddings using from a 
@@ -30,7 +36,7 @@ def get_clip_window_match_score(prompt_emb, ts_emb_map, k, threshold):
     while i <= (n-k):
         timestamp_window = timestamps[i:i+k]
         image_emb_window = image_embs[i:i+k]
-        image_similarity_window = [util.cos_sim(prompt_emb, image_emb).flatten()[0] for image_emb in image_emb_window]
+        image_similarity_window = [cosine_similarity(prompt_emb,image_emb) for image_emb in image_emb_window]
 
         curr_sum = sum(image_similarity_window)
         curr_avg = round(float(curr_sum / k), 5)

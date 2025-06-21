@@ -1,7 +1,22 @@
 [
     {
-        "video_input_folder": "/Users/subhasis/vlog-footage/nubra-to-pangong-lake",
-        "scene_prompt": "Motorcycle rider’s point of view through a vast, barren mountain landscape. The road ahead is winding with dramatic curves and twists, creating a sense of adventure. The motorcycle’s handlebar and console are clearly visible in the foreground, enhancing the immersive riding experience.",
+        "video_input_folder": "/Users/subhasis/deepcut-tests",
+        "scene_prompt": "Motorcyclist’s point of view riding through rugged, barren mountain terrain with broken, gravel-filled roads. Each twist and turn brings a new sense of adventure. The bike’s console, handlebars, or even the biker’s arms and gear are visible from the handlebar’s perspective, immersing the viewer in the thrill and rawness of the ride.",
+        "clip_duration": 10,
+        "num_clips": 5,
+        "video_output_folder": "/Users/subhasis/vlog-footage/reels",
+        "retain_audio_in_extracted_clip": "False",
+        "frame_sampling_rate": 1,
+        "tags": [
+            "ladakh",
+            "motorcycle",
+            "adventure"
+        ],
+        "match_score_threshold": 0.25
+    },
+    {
+        "video_input_folder": "/Users/subhasis/deepcut-tests",
+        "scene_prompt": "Scenic shots of a pristine, blue-water lake surrounded by barren brown mountains and distant snow-capped peaks, set in a desert-like landscape. The scene includes tourists capturing photos, laughing, and enjoying the view, reflecting the lively atmosphere of a popular travel destination.",
         "clip_duration": 10,
         "num_clips": 5,
         "video_output_folder": "/Users/subhasis/vlog-footage/reels",
