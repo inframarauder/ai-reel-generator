@@ -4,9 +4,9 @@ You know what its for :)
 '''
 import json
 import heapq
-from tqdm import tqdm
-import dotenv
 
+import dotenv
+from tqdm import tqdm
 from sentence_transformers import SentenceTransformer
 from utils.video_utils import extract_video_info_and_frames,render_reel
 from utils.vector_utils import compute_embeddings, get_clip_window_match_score
@@ -17,9 +17,9 @@ from config import AppConfig
 dotenv.load_dotenv()
 
 # load model - outside all loops for efficiency
-MODEL_NAME = "clip-ViT-L-14"
-print(f"Loading model {MODEL_NAME} ...")
-model = SentenceTransformer(MODEL_NAME)
+MODELS = ["clip-ViT-B-32","clip-ViT-B-16","clip-ViT-L-14"]
+print(f"Loading model {MODELS[1]} ...")
+model = SentenceTransformer(MODELS[1])
 
 def main(app_config):
     '''
@@ -41,6 +41,8 @@ def main(app_config):
         print(f"No supported video files in {app_config.video_input_folder}")
     else:
         print(f"Found {len(video_list)} supported files in input folder")
+
+        # using heap to store the short-listed clips for efficient extraction of top-match clips
         shortlisted_clips = []
         heapq.heapify(shortlisted_clips)
 
@@ -68,12 +70,14 @@ def main(app_config):
                     threshold = app_config.match_score_threshold
                 )
                 
-                # only clips with match_score over the threshold
+                # only clips with match_score over the threshold are pushed to the heap
                 if match_score > app_config.match_score_threshold:
-                    heapq.heappush(shortlisted_clips, (match_score, clip_window,video_path))
+                    heapq.heappush(shortlisted_clips, (match_score,clip_window,video_path))
 
+        # get top-match clips from heap
         top_match_clips = heapq.nlargest(app_config.num_clips,shortlisted_clips)
 
+        # render reel video
         render_reel(
             video_segments = top_match_clips,
             output_folder = app_config.video_output_folder,

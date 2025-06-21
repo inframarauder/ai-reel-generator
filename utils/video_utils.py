@@ -49,7 +49,7 @@ def extract_video_info_and_frames(video_path, sampling_rate):
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         pil_image = Image.fromarray(frame_rgb)
         
-        # add to frames dict and increase frame_count
+        # add to frames dict
         frames[timestamp_sec] = {
             "pil_image" : pil_image,
             "opencv_frame" : frame
