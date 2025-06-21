@@ -8,7 +8,7 @@ import time
 import cv2
 from tqdm import trange
 from PIL import Image
-from moviepy import VideoFileClip,CompositeVideoClip, concatenate_videoclips, vfx
+from moviepy import VideoFileClip,AudioFileClip,CompositeVideoClip, concatenate_videoclips, vfx
 
 def extract_video_info_and_frames(video_path, sampling_rate):
     '''
@@ -94,6 +94,11 @@ def render_reel(video_segments, output_folder, retain_audio):
         padding = 0
     )
 
+    # add audio to final_video
+    audio_path = "/Users/subhasis/stock-music/risk-136788.mp3"
+    audio = AudioFileClip(audio_path).subclipped(0,final_video.duration)
+    final_video = final_video.with_audio(audio)
+    
     # render final video
     output_path = f"{output_folder}/reel_{time.time()}.mp4"
     final_video.write_videofile(

@@ -13,20 +13,5 @@
             "adventure"
         ],
         "match_score_threshold": 0.25
-    },
-    {
-        "video_input_folder": "/Users/subhasis/deepcut-tests",
-        "scene_prompt": "Scenic shots of a pristine, blue-water lake surrounded by barren brown mountains and distant snow-capped peaks, set in a desert-like landscape. The scene includes tourists capturing photos, laughing, and enjoying the view, reflecting the lively atmosphere of a popular travel destination.",
-        "clip_duration": 10,
-        "num_clips": 5,
-        "video_output_folder": "/Users/subhasis/vlog-footage/reels",
-        "retain_audio_in_extracted_clip": "False",
-        "frame_sampling_rate": 1,
-        "tags": [
-            "ladakh",
-            "motorcycle",
-            "adventure"
-        ],
-        "match_score_threshold": 0.25
     }
 ]
