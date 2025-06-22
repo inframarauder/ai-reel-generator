@@ -2,16 +2,23 @@
 This is the main.py file.
 You know what its for :)
 '''
+# python-native library imports
 import json
 import heapq
 
+# third-party libraries import
 import dotenv
 from tqdm import tqdm
 from sentence_transformers import SentenceTransformer
-from utils.video_utils import extract_video_info_and_frames,render_reel
-from utils.vector_utils import compute_embeddings, get_clip_window_match_score
-from utils.file_utils import pre_flight_checks,get_input_videos_list
-from config import AppConfig
+
+# modules import
+from modules.video import extract_video_info_and_frames, sync_cuts_to_nearest_beat, render_reel
+from modules.audio import get_tempo_and_beat_timestamps
+from modules.vector import compute_embeddings, get_clip_window_match_score
+from modules.file import pre_flight_checks,get_input_videos_list
+
+# configs import
+from configs.app_config import AppConfig
 
 # load env variables
 dotenv.load_dotenv()
@@ -21,24 +28,14 @@ MODELS = ["clip-ViT-B-32","clip-ViT-B-16","clip-ViT-L-14"]
 print(f"Loading model {MODELS[1]} ...")
 model = SentenceTransformer(MODELS[1])
 
-def main(app_config):
+def get_top_match_clips(video_list, app_config, prompt_emb):
     '''
-    main method - you know what it does :)
+    take a list of videos and return the top-match clips
+    by comparing against a given prompt embedding
     '''
-    # perform pre-flight checks
-    pre_flight_checks(app_config=app_config)
-
-    # compute embeddings for the prompt
-    print("Computing embeddings for the scene prompt...")
-    prompt_emb = compute_embeddings(
-        item = app_config.scene_prompt,
-        model = model
-    )
-
-    # get list of videos in specified folder
-    video_list = get_input_videos_list(input_folder=app_config.video_input_folder)
     if len(video_list) == 0:
         print(f"No supported video files in {app_config.video_input_folder}")
+        return tuple()
     else:
         print(f"Found {len(video_list)} supported files in input folder")
 
@@ -76,18 +73,54 @@ def main(app_config):
 
         # get top-match clips from heap
         top_match_clips = heapq.nlargest(app_config.num_clips,shortlisted_clips)
+        return top_match_clips
 
-        # render reel video
-        render_reel(
-            video_segments = top_match_clips,
-            output_folder = app_config.video_output_folder,
-            retain_audio = app_config.retain_audio_in_extracted_clip
-        )
-        
+def main(app_config):
+    '''
+    main method - you know what it does :)
+    '''
+    # perform pre-flight checks
+    pre_flight_checks(app_config=app_config)
+
+    # compute embeddings for the prompt
+    print("Computing embeddings for the scene prompt...")
+    prompt_emb = compute_embeddings(
+        item = app_config.scene_prompt,
+        model = model
+    )
+
+    # get list of videos in specified folder
+    video_list = get_input_videos_list(input_folder=app_config.video_input_folder)
+
+    # get top-match clips from video-list
+    top_match_clips = get_top_match_clips(
+        video_list = video_list,
+        app_config = app_config,
+        prompt_emb = prompt_emb
+    )
+
+    # choose audio
+    audio_path = "/Users/subhasis/stock-music/risk-136788.mp3"
+
+    # extract tempo and beat_timestamps
+    _, beat_timestamps = get_tempo_and_beat_timestamps(audio_path=audio_path) # only need beat_timestamps for now
+
+    # get video segments synced to the beats in the audio
+    synced_video_segments = sync_cuts_to_nearest_beat(
+        video_segments = top_match_clips,
+        beat_timestamps = beat_timestamps
+    )
+
+    # render the final reel       
+    render_reel(
+        video_segments = synced_video_segments,
+        output_folder = app_config.video_output_folder,
+        retain_audio = app_config.retain_audio_in_extracted_clip,
+        audio_path = audio_path
+    )
 
 # tests happen here for now
 if __name__ == "__main__":
-
     with open("test_cases.json", "r", encoding="utf-8") as f:
         test_cases = json.load(f)
     print(f"Loaded {len(test_cases)} test case(s) from test_cases.json")

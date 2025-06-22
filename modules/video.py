@@ -6,6 +6,7 @@ pylint is disabled due to weird false warnings while using cv2
 import time 
 
 import cv2
+import numpy as np
 from tqdm import trange
 from PIL import Image
 from moviepy import VideoFileClip,AudioFileClip,CompositeVideoClip, concatenate_videoclips, vfx
@@ -64,7 +65,51 @@ def extract_video_info_and_frames(video_path, sampling_rate):
        "frames":frames
     }
 
-def render_reel(video_segments, output_folder, retain_audio):
+def find_nearest_beat_to_timestamp(timestamp, beat_timestamps, max_shift_dist = 1):
+    '''
+    Method to find closest beat within range.
+    '''
+
+    # use binary search to get the closest candidate beats
+    idx = np.searchsorted(beat_timestamps, timestamp)
+    candidates = []
+    
+    # Check adjacent beats
+    if idx > 0:
+        candidates.append(beat_timestamps[idx-1])
+    if idx < len(beat_timestamps):
+        candidates.append(beat_timestamps[idx])
+    
+    # return the original timestamp if no beats found nearby
+    if not candidates:
+        return timestamp
+    
+    # choose the lower value of the two candidates - closest beat to the timestamp
+    closest = min(candidates, key=lambda x: abs(x - timestamp))
+
+    # return the closest beat_timestamp if its less than max_shift_distance
+    # else return the original timestamp
+    return closest if abs(closest - timestamp) <= max_shift_dist else timestamp
+
+def sync_cuts_to_nearest_beat(video_segments, beat_timestamps):
+    '''
+    shift video cut-points to the nearest beat_timestamp
+    (if possible)
+    '''
+    synced_segments = []
+
+    for _, cut_points, video_path in video_segments:
+        start, end = cut_points
+
+        new_start = find_nearest_beat_to_timestamp(start, beat_timestamps) 
+        new_end = find_nearest_beat_to_timestamp(end, beat_timestamps)
+
+        print(f"Beat-synced segment for {video_path} - {(new_start, new_end)}")
+        synced_segments.append((video_path, (new_start, new_end)))
+    
+    return synced_segments
+
+def render_reel(video_segments, output_folder, retain_audio, audio_path):
     '''
         merge clips, apply transitions,sync to audio,
         do whatever the heck needs to be done and 
@@ -73,12 +118,10 @@ def render_reel(video_segments, output_folder, retain_audio):
     # extract the required clips
     clips = []
     print("Processing top match clips ...")
-    for match_score,clip_window,video_path in video_segments:
+    for video_path, cut_points in video_segments:
 
         video = VideoFileClip(video_path, audio=retain_audio) 
-        start , end = clip_window
-
-        print(f"{video_path} - {clip_window} [{round(match_score*100)}% match]")
+        start , end = cut_points
 
         # Cut and collect the segments with transition
         clip = video.subclipped(start,end)
@@ -95,7 +138,6 @@ def render_reel(video_segments, output_folder, retain_audio):
     )
 
     # add audio to final_video
-    audio_path = "/Users/subhasis/stock-music/risk-136788.mp3"
     audio = AudioFileClip(audio_path).subclipped(0,final_video.duration)
     final_video = final_video.with_audio(audio)
     
@@ -104,12 +146,11 @@ def render_reel(video_segments, output_folder, retain_audio):
     final_video.write_videofile(
         output_path,
         codec="libx264",
-        audio_codec="aac",  # Required parameter even with no audio
-        fps=30,
+        audio_codec="aac",
+        fps=24,
+        bitrate="8000k",
         threads=4
     )
 
      # Close final_video
     final_video.close()
-
-    print(f"Reel rendered at path: {output_path}")
