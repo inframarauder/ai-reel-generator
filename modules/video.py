@@ -76,9 +76,9 @@ def find_nearest_beat_to_timestamp(timestamp, beat_timestamps, max_shift_dist = 
     
     # Check adjacent beats
     if idx > 0:
-        candidates.append(beat_timestamps[idx-1])
+        candidates.append(int(beat_timestamps[idx-1]))
     if idx < len(beat_timestamps):
-        candidates.append(beat_timestamps[idx])
+        candidates.append(int(beat_timestamps[idx]))
     
     # return the original timestamp if no beats found nearby
     if not candidates:
@@ -134,7 +134,7 @@ def render_reel(video_segments, output_folder, retain_audio, audio_path):
     final_video = concatenate_videoclips(
         clips = clips, 
         method="compose",
-        padding = 0
+        padding = -1
     )
 
     # add audio to final_video
