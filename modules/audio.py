@@ -4,6 +4,7 @@ go here
 '''
 import librosa
 import numpy as np
+from moviepy import AudioFileClip
 
 def get_tempo_and_beat_timestamps(audio_path):
     '''
@@ -11,7 +12,7 @@ def get_tempo_and_beat_timestamps(audio_path):
     (temp, beat_timestamps)
     '''
     # Load audio and detect beats
-    print(f"Processing audio ${audio_path}")
+    print(f"Processing audio {audio_path}")
 
     y, sr = librosa.load(audio_path)
     tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
@@ -19,4 +20,14 @@ def get_tempo_and_beat_timestamps(audio_path):
 
     print(f"Detected {len(beat_timestamps)} beats at a tempo of {int(tempo)} BPM")
 
-    return tempo, np.asarray(beat_timestamps)
+    return tempo.flatten()[0], np.asarray(beat_timestamps) # type: ignore
+
+def load_audio_clip(audio_path, beat_timestamps, duration):
+    '''
+    Load audio clip from file 
+    and return subclip based on beat_timestamp and duration
+    '''
+    start = beat_timestamps[0]
+    end = duration + start
+
+    return AudioFileClip(audio_path).subclipped(start, end)

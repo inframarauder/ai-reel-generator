@@ -3,13 +3,11 @@
 utility functions related to video processing
 pylint is disabled due to weird false warnings while using cv2
 '''
-import time 
-
 import cv2
 import numpy as np
 from tqdm import trange
 from PIL import Image
-from moviepy import VideoFileClip,AudioFileClip,CompositeVideoClip, concatenate_videoclips, vfx
+from moviepy import VideoFileClip, concatenate_videoclips
 
 def extract_video_info_and_frames(video_path, sampling_rate):
     '''
@@ -65,84 +63,80 @@ def extract_video_info_and_frames(video_path, sampling_rate):
        "frames":frames
     }
 
-def find_nearest_beat_to_timestamp(timestamp, beat_timestamps, max_shift_dist = 1):
-    '''
-    Method to find closest beat within range.
-    '''
+def get_concatenated_video(video_segments=[], video_clips =[],retain_audio = False, padding = 0):
+    """
+    Method to return a concatenated video
+    from video_segments or video_clips
+    """
+    clips = []
+    if len(video_clips):
+        clips = video_clips
+    else:
+        for _, video_path, cut_points in video_segments:
+            
+            # load video and cut points
+            video= VideoFileClip(video_path, audio=retain_audio)
+            start,end = cut_points
 
-    # use binary search to get the closest candidate beats
-    idx = np.searchsorted(beat_timestamps, timestamp)
-    candidates = []
-    
-    # Check adjacent beats
-    if idx > 0:
-        candidates.append(int(beat_timestamps[idx-1]))
-    if idx < len(beat_timestamps):
-        candidates.append(int(beat_timestamps[idx]))
-    
-    # return the original timestamp if no beats found nearby
-    if not candidates:
-        return timestamp
-    
-    # choose the lower value of the two candidates - closest beat to the timestamp
-    closest = min(candidates, key=lambda x: abs(x - timestamp))
+            # extract the clip from main video
+            clip = video.subclipped(start, end)
 
-    # return the closest beat_timestamp if its less than max_shift_distance
-    # else return the original timestamp
-    return closest if abs(closest - timestamp) <= max_shift_dist else timestamp
+            # collect clip
+            clips.append(clip)
 
-def sync_cuts_to_nearest_beat(video_segments, beat_timestamps):
+    concatenated_video = concatenate_videoclips(
+        clips=clips,
+        method="compose",
+        padding=padding
+    )
+
+    return concatenated_video
+        
+
+def sync_cuts_to_nearest_beat(video, cut_tempo , beat_timestamps):
     '''
     shift video cut-points to the nearest beat_timestamp
     (if possible)
     '''
-    synced_segments = []
+    synced_clips = []
+    seg_start = 0
+    seg_end = cut_tempo
+    for clip in video.clips:
 
-    for _, cut_points, video_path in video_segments:
-        start, end = cut_points
+        if seg_end > len(beat_timestamps) - 1 : break
 
-        new_start = find_nearest_beat_to_timestamp(start, beat_timestamps) 
-        new_end = find_nearest_beat_to_timestamp(end, beat_timestamps)
+        # set start and end points of cut
+        start = beat_timestamps[seg_start]
+        end = beat_timestamps[seg_end]
 
-        print(f"Beat-synced segment for {video_path} - {(new_start, new_end)}")
-        synced_segments.append((video_path, (new_start, new_end)))
+        # set new start and end in the clip
+        clip = clip.with_start(start)
+        clip = clip.with_end(end)
+
+        # move segment pointers
+        seg_start += cut_tempo
+        seg_end += cut_tempo
+
+        # collect the newly synced clips
+        synced_clips.append(clip)
     
-    return synced_segments
+    synced_video = get_concatenated_video(
+        video_clips=synced_clips,
+        padding= -1 # apparently this adds a slight fade effect
+    )
+    
+    return synced_video
 
-def render_reel(video_segments, output_folder, retain_audio, audio_path):
+def render_reel(final_video, final_audio, output_folder ):
     '''
-        merge clips, apply transitions,sync to audio,
-        do whatever the heck needs to be done and 
         render final reel clip at output_path
     '''
-    # extract the required clips
-    clips = []
-    print("Processing top match clips ...")
-    for video_path, cut_points in video_segments:
-
-        video = VideoFileClip(video_path, audio=retain_audio) 
-        start , end = cut_points
-
-        # Cut and collect the segments with transition
-        clip = video.subclipped(start,end)
-        clips.append(clip)
-
-        # close clip to free up resources
-        clip.close()
-    
-    # stitch them with transition into a single video
-    final_video = concatenate_videoclips(
-        clips = clips, 
-        method="compose",
-        padding = -1
-    )
-
     # add audio to final_video
-    audio = AudioFileClip(audio_path).subclipped(0,final_video.duration)
-    final_video = final_video.with_audio(audio)
+    final_video = final_video.with_audio(final_audio)
     
     # render final video
-    output_path = f"{output_folder}/reel_{time.time()}.mp4"
+    audio_file_name = final_audio.filename.split("/")[-1:][0].strip(".mp3")
+    output_path = f"{output_folder}/reel_{audio_file_name}.mp4"
     final_video.write_videofile(
         output_path,
         codec="libx264",

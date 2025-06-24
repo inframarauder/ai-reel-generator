@@ -193,5 +193,6 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-# ignore all working dir stuff
-work-dir/
+# ignore all mp3 and mp4
+*.mp3
+*.mp4

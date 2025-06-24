@@ -12,8 +12,8 @@ from tqdm import tqdm
 from sentence_transformers import SentenceTransformer
 
 # modules import
-from modules.video import extract_video_info_and_frames, sync_cuts_to_nearest_beat, render_reel
-from modules.audio import get_tempo_and_beat_timestamps
+from modules.video import extract_video_info_and_frames,get_concatenated_video, sync_cuts_to_nearest_beat, render_reel
+from modules.audio import get_tempo_and_beat_timestamps, load_audio_clip
 from modules.vector import compute_embeddings, get_clip_window_match_score
 from modules.file import pre_flight_checks,get_input_videos_list
 
@@ -24,9 +24,9 @@ from configs.app_config import AppConfig
 dotenv.load_dotenv()
 
 # load model - outside all loops for efficiency
-MODELS = ["clip-ViT-B-32","clip-ViT-B-16","clip-ViT-L-14"]
-print(f"Loading model {MODELS[1]} ...")
-model = SentenceTransformer(MODELS[1])
+MODEL_NAME= "clip-ViT-B-16"
+print(f"Loading {MODEL_NAME} ...")
+model = SentenceTransformer(MODEL_NAME)
 
 def get_top_match_clips(video_list, app_config, prompt_emb):
     '''
@@ -66,10 +66,11 @@ def get_top_match_clips(video_list, app_config, prompt_emb):
                     k = app_config.clip_duration,
                     threshold = app_config.match_score_threshold
                 )
+                print(f"{video_path} - {clip_window} - {match_score}")
                 
                 # only clips with match_score over the threshold are pushed to the heap
                 if match_score > app_config.match_score_threshold:
-                    heapq.heappush(shortlisted_clips, (match_score,clip_window,video_path))
+                    heapq.heappush(shortlisted_clips, (match_score,video_path,clip_window))
 
         # get top-match clips from heap
         top_match_clips = heapq.nlargest(app_config.num_clips,shortlisted_clips)
@@ -99,24 +100,46 @@ def main(app_config):
         prompt_emb = prompt_emb
     )
 
+
+    # get initial concatenated video
+    concatenated_video = get_concatenated_video(
+        video_segments=top_match_clips,
+        retain_audio=app_config.retain_audio_in_extracted_clip,
+    )
+    print([f"({clip.start},{clip.end})" for clip in concatenated_video.clips]) # type: ignore
+
+
     # choose audio
     audio_path = "/Users/subhasis/stock-music/risk-136788.mp3"
 
     # extract tempo and beat_timestamps
-    _, beat_timestamps = get_tempo_and_beat_timestamps(audio_path=audio_path) # only need beat_timestamps for now
+    tempo, beat_timestamps = get_tempo_and_beat_timestamps(audio_path=audio_path) # only need beat_timestamps for now
+
+    # each cut should have same tempo as parent audio
+    cut_tempo = int((tempo * (app_config.clip_duration - 1)) / 60)
 
     # get video segments synced to the beats in the audio
-    synced_video_segments = sync_cuts_to_nearest_beat(
-        video_segments = top_match_clips,
+    synced_video = sync_cuts_to_nearest_beat(
+        video=concatenated_video,
+        cut_tempo = cut_tempo,
         beat_timestamps = beat_timestamps
+    )
+   
+    print([f"({clip.start},{clip.end})" for clip in synced_video.clips]) # type: ignore
+
+    
+    # load the final audio
+    audio = load_audio_clip(
+        audio_path=audio_path,
+        beat_timestamps=beat_timestamps,
+        duration=synced_video.duration
     )
 
     # render the final reel       
     render_reel(
-        video_segments = synced_video_segments,
-        output_folder = app_config.video_output_folder,
-        retain_audio = app_config.retain_audio_in_extracted_clip,
-        audio_path = audio_path
+        final_video = synced_video,
+        final_audio=audio,
+        output_folder = app_config.video_output_folder
     )
 
 # tests happen here for now
