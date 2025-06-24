@@ -8,6 +8,7 @@ import numpy as np
 from tqdm import trange
 from PIL import Image
 from moviepy import VideoFileClip, concatenate_videoclips
+from moviepy.video.fx import FadeIn, FadeOut, CrossFadeIn
 
 def extract_video_info_and_frames(video_path, sampling_rate):
     '''
@@ -101,7 +102,8 @@ def sync_cuts_to_nearest_beat(video, cut_tempo , beat_timestamps):
     synced_clips = []
     seg_start = 0
     seg_end = cut_tempo
-    for clip in video.clips:
+
+    for i, clip in enumerate(video.clips):
 
         if seg_end > len(beat_timestamps) - 1 : break
 
@@ -112,6 +114,14 @@ def sync_cuts_to_nearest_beat(video, cut_tempo , beat_timestamps):
         # set new start and end in the clip
         clip = clip.with_start(start)
         clip = clip.with_end(end)
+
+        # apply transitions
+        if i == 0:
+            clip = FadeIn(1).apply(clip=clip)
+        elif i == len(video.clips) - 1:
+            clip = FadeOut(1).apply(clip=clip)
+        else:
+            clip = CrossFadeIn(1).apply(clip=clip)
 
         # move segment pointers
         seg_start += cut_tempo
@@ -126,6 +136,7 @@ def sync_cuts_to_nearest_beat(video, cut_tempo , beat_timestamps):
     )
     
     return synced_video
+    
 
 def render_reel(final_video, final_audio, output_folder ):
     '''
@@ -133,10 +144,18 @@ def render_reel(final_video, final_audio, output_folder ):
     '''
     # add audio to final_video
     final_video = final_video.with_audio(final_audio)
-    
+
+    # Ensure 3:4 aspect ratio (e.g., 720x960), center crop if needed
+    target_w = 720
+    target_h = 960
+
+    # Resize the video to 3:4 aspect ratio (720x960)
+    final_video = final_video.resized(new_size=(target_w, target_h))
+
     # render final video
     audio_file_name = final_audio.filename.split("/")[-1:][0].strip(".mp3")
     output_path = f"{output_folder}/reel_{audio_file_name}.mp4"
+
     final_video.write_videofile(
         output_path,
         codec="libx264",

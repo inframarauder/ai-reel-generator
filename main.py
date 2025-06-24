@@ -135,7 +135,7 @@ def main(app_config):
         duration=synced_video.duration
     )
 
-    # render the final reel       
+    # render the final reel 
     render_reel(
         final_video = synced_video,
         final_audio=audio,

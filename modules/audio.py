@@ -5,6 +5,7 @@ go here
 import librosa
 import numpy as np
 from moviepy import AudioFileClip
+from moviepy.audio.fx import AudioFadeIn,AudioFadeOut
 
 def get_tempo_and_beat_timestamps(audio_path):
     '''
@@ -30,4 +31,9 @@ def load_audio_clip(audio_path, beat_timestamps, duration):
     start = beat_timestamps[0]
     end = duration + start
 
-    return AudioFileClip(audio_path).subclipped(start, end)
+    audio_clip = AudioFileClip(audio_path).subclipped(start, end)
+
+    audio_clip = AudioFadeIn(1).apply(audio_clip)
+    audio_clip = AudioFadeOut(2).apply(audio_clip)
+
+    return audio_clip

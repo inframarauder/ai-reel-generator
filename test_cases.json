@@ -1,10 +1,10 @@
 [
     {
-        "video_input_folder": "/Users/subhasis/deepcut-tests",
+        "video_input_folder": "/Users/subhasis/deepcut-tests/raw",
         "scene_prompt": "Motorcyclist’s point of view riding through rugged, barren mountain terrain with broken, gravel-filled roads. Each twist and turn brings a new sense of adventure. The bike’s console, handlebars, or even the biker’s arms and gear are visible from the handlebar’s perspective, immersing the viewer in the thrill and rawness of the ride.",
         "clip_duration": 10,
         "num_clips": 5,
-        "video_output_folder": "/Users/subhasis/vlog-footage/reels",
+        "video_output_folder": "/Users/subhasis/deepcut-tests/reels",
         "retain_audio_in_extracted_clip": "False",
         "frame_sampling_rate": 1,
         "tags": [
