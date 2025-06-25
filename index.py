@@ -42,6 +42,8 @@ def generate_reel(input_folder, output_folder, scene_prompt, audio_path):
 
     if len(video_list) > 0:
 
+        print(f"{len(video_list)} supported videos in {input_folder}")
+
         # compute embeddings for the prompt
         print("Computing embeddings for the scene prompt...")
         prompt_emb = compute_embeddings(
@@ -54,8 +56,7 @@ def generate_reel(input_folder, output_folder, scene_prompt, audio_path):
         top_match_clips = get_top_match_clips(
             video_list = video_list,
             prompt_emb = prompt_emb,
-            model = model,
-            settings = defaults
+            model = model
         )
 
         # get initial concatenated video

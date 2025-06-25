@@ -3,13 +3,15 @@
 utility functions related to video processing
 pylint is disabled due to weird false warnings while using cv2
 '''
+import time
 import heapq
 import cv2
 from tqdm import trange,tqdm
 from PIL import Image
 from moviepy import VideoFileClip, concatenate_videoclips
 from moviepy.video.fx import FadeIn, FadeOut, CrossFadeIn
-from vector import cosine_similarity, compute_embeddings
+from modules.vector import cosine_similarity, compute_embeddings
+from configs.settings import defaults
 
 def extract_video_info_and_frames(video_path, sampling_rate):
     '''
@@ -55,7 +57,7 @@ def extract_video_info_and_frames(video_path, sampling_rate):
             "pil_image" : pil_image,
             "opencv_frame" : frame
         }
-    
+
     return {
        "fps" : fps,
        "total_frames": total_frames,
@@ -99,7 +101,7 @@ def get_clip_window_match_score(prompt_emb, ts_emb_map, k, threshold):
 
     return (clip_window, max_avg_similarity)
 
-def get_top_match_clips(video_list, prompt_emb, model, settings):
+def get_top_match_clips(video_list, prompt_emb, model):
     '''
     take a list of videos and return the top-match clips
     by comparing against a given prompt embedding
@@ -113,10 +115,10 @@ def get_top_match_clips(video_list, prompt_emb, model, settings):
         # extract video info and frames
         video = extract_video_info_and_frames(
             video_path = video_path,
-            sampling_rate = settings["frame_sample_rate"]
+            sampling_rate = defaults["frame_sample_rate"]
         )
 
-        if video["total_duration"] < settings['clip_duration']:
+        if video["total_duration"] < defaults['clip_duration']:
             print(f"Ignoring clip {video_path} as duration is too small..")
         else:
             # create a map of timestamps -> image embeddings for each video frame
@@ -128,17 +130,20 @@ def get_top_match_clips(video_list, prompt_emb, model, settings):
             (clip_window, match_score) = get_clip_window_match_score(
                 prompt_emb = prompt_emb,
                 ts_emb_map = timestamp_embedding_map,
-                k = settings['clip_duration'],
-                threshold = settings['match_score_threshold']
+                k = defaults['clip_duration'],
+                threshold = defaults['match_score_threshold']
             )
-            print(f"{video_path} - {clip_window} - {match_score}")
+            if match_score > defaults['match_score_threshold']:
+                print(f"{video_path} - {clip_window} - {match_score}% match")
+            else:
+                print(f"No match found from video {video_path}")
             
             # only clips with match_score over the threshold are pushed to the heap
-            if match_score > settings['match_score_threshold']:
+            if match_score > defaults['match_score_threshold']:
                 heapq.heappush(shortlisted_clips, (match_score,video_path,clip_window))
 
     # get top-match clips from heap
-    top_match_clips = heapq.nlargest(settings['max_num_clips'],shortlisted_clips)
+    top_match_clips = heapq.nlargest(defaults['max_num_clips'],shortlisted_clips)
     return top_match_clips
 
 def get_concatenated_video(video_segments=[], video_clips =[],retain_audio = False, padding = 0):
@@ -170,7 +175,6 @@ def get_concatenated_video(video_segments=[], video_clips =[],retain_audio = Fal
 
     return concatenated_video
         
-
 def sync_cuts_to_nearest_beat(video, cut_tempo , beat_timestamps):
     '''
     shift video cut-points to the nearest beat_timestamp
@@ -214,7 +218,6 @@ def sync_cuts_to_nearest_beat(video, cut_tempo , beat_timestamps):
     
     return synced_video
     
-
 def render_reel(final_video, final_audio, output_folder ):
     '''
         render final reel clip at output_path
@@ -231,7 +234,7 @@ def render_reel(final_video, final_audio, output_folder ):
 
     # render final video
     audio_file_name = final_audio.filename.split("/")[-1:][0].strip(".mp3")
-    output_path = f"{output_folder}/reel_{audio_file_name}.mp4"
+    output_path = f"{output_folder}/reel_{audio_file_name}_{time.time()}.mp4"
 
     final_video.write_videofile(
         output_path,
