@@ -21,8 +21,7 @@ from configs.settings import defaults
 dotenv.load_dotenv()
 
 # load model - outside all loops for efficiency
-MODEL_NAME= "clip-ViT-B-16"
-model = load_model(MODEL_NAME)
+model = load_model(defaults['model_name'])
 
 
 def generate_reel(input_folder, output_folder, scene_prompt, audio_path):
