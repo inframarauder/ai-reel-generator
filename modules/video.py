@@ -3,12 +3,13 @@
 utility functions related to video processing
 pylint is disabled due to weird false warnings while using cv2
 '''
+import heapq
 import cv2
-import numpy as np
-from tqdm import trange
+from tqdm import trange,tqdm
 from PIL import Image
 from moviepy import VideoFileClip, concatenate_videoclips
 from moviepy.video.fx import FadeIn, FadeOut, CrossFadeIn
+from vector import cosine_similarity, compute_embeddings
 
 def extract_video_info_and_frames(video_path, sampling_rate):
     '''
@@ -63,6 +64,82 @@ def extract_video_info_and_frames(video_path, sampling_rate):
        "height": height,
        "frames":frames
     }
+
+def get_clip_window_match_score(prompt_emb, ts_emb_map, k, threshold):
+    '''
+    method to get a clip window (start,end) of size k
+    where the frames have the highest similarity to the prompt
+
+    uses the sliding-window algorithm
+    '''
+    timestamps = list(ts_emb_map.keys())
+    image_embs = list(ts_emb_map.values())
+
+    clip_window = (0,0)
+    n = len(ts_emb_map.items())
+    i = 0
+    max_avg_similarity = threshold
+
+    while i <= (n-k):
+        timestamp_window = timestamps[i:i+k]
+        image_emb_window = image_embs[i:i+k]
+        image_similarity_window = [cosine_similarity(prompt_emb,image_emb) for image_emb in image_emb_window]
+
+        curr_sum = sum(image_similarity_window)
+        curr_avg = round(float(curr_sum / k), 5)
+        
+        # find max avg
+        if curr_avg > max_avg_similarity:
+            max_avg_similarity = curr_avg
+            i = k
+            clip_window = (timestamp_window[0], timestamp_window[len(timestamp_window) - 1])
+            
+        else:
+            i = i + 1
+
+    return (clip_window, max_avg_similarity)
+
+def get_top_match_clips(video_list, prompt_emb, model, settings):
+    '''
+    take a list of videos and return the top-match clips
+    by comparing against a given prompt embedding
+    '''
+    # using heap to store the short-listed clips for efficient extraction of top-match clips
+    shortlisted_clips = []
+    heapq.heapify(shortlisted_clips)
+
+    for video_path in video_list:
+
+        # extract video info and frames
+        video = extract_video_info_and_frames(
+            video_path = video_path,
+            sampling_rate = settings["frame_sample_rate"]
+        )
+
+        if video["total_duration"] < settings['clip_duration']:
+            print(f"Ignoring clip {video_path} as duration is too small..")
+        else:
+            # create a map of timestamps -> image embeddings for each video frame
+            print("Computing embeddings for the sampled frames ...")
+            timestamp_embedding_map = {t: compute_embeddings(item=img["pil_image"], model=model) for t, img in tqdm(video["frames"].items())}
+        
+            # get start and end times for the clip to cut out of the video
+            print("Extracting clip with best match score ...")
+            (clip_window, match_score) = get_clip_window_match_score(
+                prompt_emb = prompt_emb,
+                ts_emb_map = timestamp_embedding_map,
+                k = settings['clip_duration'],
+                threshold = settings['match_score_threshold']
+            )
+            print(f"{video_path} - {clip_window} - {match_score}")
+            
+            # only clips with match_score over the threshold are pushed to the heap
+            if match_score > settings['match_score_threshold']:
+                heapq.heappush(shortlisted_clips, (match_score,video_path,clip_window))
+
+    # get top-match clips from heap
+    top_match_clips = heapq.nlargest(settings['max_num_clips'],shortlisted_clips)
+    return top_match_clips
 
 def get_concatenated_video(video_segments=[], video_clips =[],retain_audio = False, padding = 0):
     """
