@@ -1,5 +1,4 @@
 '''
-This is the main.py file.
 You know what its for :)
 '''
 # python-native library imports

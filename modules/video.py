@@ -226,8 +226,8 @@ def render_reel(final_video, final_audio, output_folder ):
     final_video = final_video.with_audio(final_audio)
 
     # Ensure 3:4 aspect ratio (e.g., 720x960), center crop if needed
-    target_w = 720
-    target_h = 960
+    target_w = defaults['target_width']
+    target_h = defaults['target_height']
 
     # Resize the video to 3:4 aspect ratio (720x960)
     final_video = final_video.resized(new_size=(target_w, target_h))

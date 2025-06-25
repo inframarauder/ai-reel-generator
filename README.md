@@ -25,6 +25,7 @@ A python-based tool to generate short video content (like Instagram reels or You
     ```
     cd ai-reel-generator
     python3 -m venv .venv
+    source .venv/bin/activate
     ```
 3. Install the requirements - 
     ```
