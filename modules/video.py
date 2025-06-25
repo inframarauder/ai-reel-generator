@@ -134,7 +134,7 @@ def get_top_match_clips(video_list, prompt_emb, model):
                 threshold = defaults['match_score_threshold']
             )
             if match_score > defaults['match_score_threshold']:
-                print(f"{video_path} - {clip_window} - {match_score}% match")
+                print(f"{video_path} - {clip_window} - {round(match_score * 100)}% match")
             else:
                 print(f"No match found from video {video_path}")
             
